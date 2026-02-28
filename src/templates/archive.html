@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="bi bi-archive me-2"></i>
+        Архів голосувань
+    </h2>
+
+    {% if polls %}
+    <div class="row">
+        {% for poll in polls %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">{{ poll.title }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if poll.description %}
+                    <p class="card-text text-muted mb-3">{{ poll.description }}</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>
+                            {{ poll.created_at.strftime('%d.%m.%Y') }}
+                        </small>
+                        <small class="text-muted">
+                            <i class="bi bi-people me-1"></i>
+                            Голосів: {{ poll.total_votes }}
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="/poll/{{ poll.id }}/results" class="btn btn-primary w-100">
+                        <i class="bi bi-bar-chart me-2"></i>
+                        Переглянути результати
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        В архіві поки немає голосувань
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

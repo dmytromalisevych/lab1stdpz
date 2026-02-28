@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', path='poll_results.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Головна</a></li>
+            <li class="breadcrumb-item active">Результати голосування</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">{{ poll.title }}</h4>
+        </div>
+        <div class="card-body">
+            {% if poll.description %}
+            <p class="text-muted mb-4">{{ poll.description }}</p>
+            {% endif %}
+
+            <div class="results-container">
+                {% for option in options %}
+                <div class="poll-result">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{{ option.text }}</span>
+                        <span class="badge bg-primary">{{ option.votes }} голосів</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" 
+                             role="progressbar" 
+                             data-width="{{ '{:.1f}'.format(option.percentage) }}"
+                             aria-valuenow="{{ '{:.1f}'.format(option.percentage) }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            {{ '{:.1f}'.format(option.percentage) }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="poll-stats">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h3>{{ total_votes }}</h3>
+                                <p class="text-muted mb-0">Всього голосів</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h3>{{ options|length }}</h3>
+                                <p class="text-muted mb-0">Варіантів відповіді</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h3>
+                                    <i class="bi {% if poll.is_active %}bi-check-circle text-success{% else %}bi-x-circle text-danger{% endif %}"></i>
+                                </h3>
+                                <p class="text-muted mb-0">
+                                    {% if poll.is_active %}Активне{% else %}Закрите{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    <i class="bi bi-clock"></i> 
+                    Створено: {{ poll.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                </small>
+                {% if current_user and current_user.is_admin %}
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-primary" 
+                            data-poll-id="{{ poll.id }}"
+                            onclick="togglePollStatus(this)">
+                        {% if poll.is_active %}
+                        <i class="bi bi-pause-fill"></i> Призупинити
+                        {% else %}
+                        <i class="bi bi-play-fill"></i> Відновити
+                        {% endif %}
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            data-poll-id="{{ poll.id }}"
+                            onclick="confirmDelete(this)">
+                        <i class="bi bi-trash"></i> Видалити
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <a href="/" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Повернутися до списку
+        </a>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Підтвердження видалення</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Ви дійсно хочете видалити це опитування?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Видалити</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width + '%';
+        }, 100);
+    });
+});
+
+let pollIdToDelete = null;
+const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+function confirmDelete(button) {
+    pollIdToDelete = button.getAttribute('data-poll-id');
+    deleteModal.show();
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+    if (!pollIdToDelete) return;
+    
+    try {
+        const response = await fetch(`/api/polls/${pollIdToDelete}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            window.location.href = '/';
+        } else {
+            const data = await response.json();
+            alert(data.detail || 'Помилка при видаленні опитування');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Помилка при видаленні опитування');
+    } finally {
+        deleteModal.hide();
+    }
+});
+
+async function togglePollStatus(button) {
+    const pollId = button.getAttribute('data-poll-id');
+    try {
+        const response = await fetch(`/api/polls/${pollId}/toggle`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const data = await response.json();
+            alert(data.detail || 'Помилка при зміні статусу опитування');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Помилка при зміні статусу опитування');
+    }
+}
+</script>
+{% endblock %}

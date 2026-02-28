@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="bi bi-gear me-2"></i>
+        Адмін панель
+    </h2>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-bar-chart me-2"></i>
+                        Активні голосування
+                    </h5>
+                    <h2 class="card-text">{{ stats.active_polls }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-people me-2"></i>
+                        Всього користувачів
+                    </h5>
+                    <h2 class="card-text">{{ stats.total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-check2-square me-2"></i>
+                        Всього голосів
+                    </h5>
+                    <h2 class="card-text">{{ stats.total_votes }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Управління голосуваннями</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Назва</th>
+                            <th>Створено</th>
+                            <th>Статус</th>
+                            <th>Голосів</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for poll in polls %}
+                        <tr>
+                            <td>{{ poll.id }}</td>
+                            <td>{{ poll.title }}</td>
+                            <td>{{ poll.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <span class="badge {% if poll.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ "Активне" if poll.is_active else "Неактивне" }}
+                                </span>
+                            </td>
+                            <td>{{ poll.total_votes }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="/poll/{{ poll.id }}/results" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-bar-chart-fill"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-warning"
+                                            onclick="togglePollStatus('{{ poll.id }}')">
+                                        <i class="bi {% if poll.is_active %}bi-pause-fill{% else %}bi-play-fill{% endif %}"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="deletePoll('{{ poll.id }}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function deletePoll(pollId) {
+    if (!confirm('Ви впевнені, що хочете видалити це опитування?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/polls/${pollId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success';
+            alertDiv.innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                ${data.message}
+            `;
+            document.querySelector('.container').insertBefore(
+                alertDiv,
+                document.querySelector('.container').firstChild
+            );
+            
+            const pollCard = document.querySelector(`[data-poll-id="${pollId}"]`);
+            if (pollCard) {
+                pollCard.remove();
+            }
+            
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            throw new Error(data.detail || 'Помилка при видаленні');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Помилка при видаленні опитування');
+    }
+}
+
+async function togglePollStatus(pollId) {
+    try {
+        const response = await fetch(`/api/polls/${pollId}/toggle`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            const data = await response.json();
+            showMessage(data.detail || 'Помилка при зміні статусу', 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showMessage('Помилка при зміні статусу', 'danger');
+    }
+}
+
+async function deletePoll(pollId) {
+    if (!confirm('Ви впевнені, що хочете видалити це голосування?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/polls/${pollId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            const data = await response.json();
+            showMessage(data.detail || 'Помилка при видаленні', 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showMessage('Помилка при видаленні', 'danger');
+    }
+}
+</script>
+{% endblock %}

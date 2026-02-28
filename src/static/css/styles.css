@@ -1,0 +1,78 @@
+.card {
+    margin-bottom: 1.5rem;
+}
+
+.poll-form {
+    margin-bottom: 1rem;
+}
+
+.form-check {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
+}
+
+.form-check:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.form-check-input {
+    margin-top: 0.25rem;
+}
+
+.btn-vote {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.results-link {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.results-link:hover {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.poll-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.badge.bg-active {
+    background-color: #0d6efd;
+}
+
+.poll-option {
+    margin-bottom: 1rem;
+}
+
+.poll-option-text {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.poll-progress {
+    height: 4px;
+    background-color: #e9ecef;
+    border-radius: 2px;
+    margin-top: 0.5rem;
+}
+
+.poll-progress-bar {
+    height: 100%;
+    background-color: #0d6efd;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.poll-stats {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
