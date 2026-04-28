@@ -135,36 +135,47 @@
     <script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.0/dist/cookieconsent.umd.js"></script>
     <script>
         CookieConsent.run({
-            guiOptions: { consentModal: { layout: "cloud" } },
-            categories: {
-                necessary: { readOnly: true, enabled: true },
-                analytics: {}
-            },
-            language: {
-                default: "uk",
-                translations: {
-                    uk: {
-                        consentModal: {
-                            title: "Ми використовуємо cookie 🍪",
-                            description: "Ця система голосування використовує файли cookie для збереження вашої авторизації (JWT токени) та запобігання повторному голосуванню згідно з правилами GDPR.",
-                            acceptAllBtn: "Прийняти всі",
-                            acceptNecessaryBtn: "Тільки необхідні",
-                            showPreferencesBtn: "Налаштування"
-                        },
-                        preferencesModal: {
-                            title: "Налаштування cookie",
-                            acceptAllBtn: "Прийняти всі",
-                            acceptNecessaryBtn: "Тільки необхідні",
-                            savePreferencesBtn: "Зберегти",
-                            closeIconLabel: "Закрити",
-                            sections: [
-                                { title: "Необхідні cookie", description: "Потрібні для роботи системи авторизації.", linkedCategory: "necessary" }
-                            ]
-                        }
+        guiOptions: { consentModal: { layout: "cloud" } },
+        categories: {
+            necessary: { readOnly: true, enabled: true },
+            analytics: {} 
+        },
+        language: {
+            default: "uk",
+            translations: {
+                uk: {
+                    consentModal: {
+                        title: "Ми використовуємо cookie 🍪",
+                        description: "Ця система використовує необхідні файли cookie для авторизації, а також аналітичні cookie для покращення сервісу згідно з GDPR.",
+                        acceptAllBtn: "Прийняти всі",
+                        acceptNecessaryBtn: "Тільки необхідні",
+                        showPreferencesBtn: "Налаштування"
+                    },
+                    preferencesModal: {
+                        title: "Налаштування cookie",
+                        acceptAllBtn: "Прийняти всі",
+                        acceptNecessaryBtn: "Тільки необхідні",
+                        savePreferencesBtn: "Зберегти",
+                        closeIconLabel: "Закрити",
+                        sections: [
+                            { title: "Необхідні", description: "Потрібні для роботи авторизації та безпеки.", linkedCategory: "necessary" },
+                            { title: "Аналітика", description: "Допомагають нам зрозуміти, як ви використовуєте сайт.", linkedCategory: "analytics" }
+                        ]
                     }
                 }
             }
-        });
+        },
+        onConsent: function() {
+            if (CookieConsent.acceptedCategory('analytics')) {
+                document.cookie = "analytics_tracker_id=demo_abc123; max-age=" + 60*60*24*30 + "; path=/";
+            }
+        },
+        onChange: function() {
+            if (CookieConsent.acceptedCategory('analytics')) {
+                document.cookie = "analytics_tracker_id=demo_abc123; max-age=" + 60*60*24*30 + "; path=/";
+            }
+        }
+    });
     </script>
 </body>
 </html>
