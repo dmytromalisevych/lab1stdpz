@@ -16,17 +16,21 @@
 
 ## 🚀 Базові команди для запуску
 
-### 1. Запуск серверної частини (Бекенд)
-Перейдіть у кореневу папку проєкту та виконайте наступні команди:
+**1. Запуск серверної частини (FastAPI):**
+\`\`\`bash
+source venv/bin/activate
+python src/main.py
+\`\`\`
 
-```bash
-# Створення та активація віртуального середовища
-python3 -m venv venv
-source venv/bin/activate  # Для Mac/Linux
+**2. Генерація документації (pdoc):**
+Щоб згенерувати HTML-документацію для Python-коду, виконайте:
+\`\`\`bash
+source venv/bin/activate
+python -m pdoc src/main.py -o docs
+\`\`\`
 
-# Встановлення залежностей
-pip install -r requirements.txt
-
-# Запуск сервера
-cd src
-python main.py
+**3. Запуск Storybook (UI Компоненти):**
+Щоб запустити середовище тестування компонентів:
+\`\`\`bash
+npm run storybook
+\`\`\`
